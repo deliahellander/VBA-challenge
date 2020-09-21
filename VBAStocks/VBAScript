@@ -1,0 +1,160 @@
+Attribute VB_Name = "Module1"
+Sub Stocks_by_yr():
+
+    'Assign variables
+        Dim i As Long
+        Dim yearly_change As Double
+        Dim percent_change As Double
+        Dim ticker As String
+        Dim vol As Double
+        Dim vol_total As Double
+        Dim open_ As Double
+        Dim high As Double
+        Dim low As Double
+        Dim close_ As Double
+        Dim lastRow As Long
+        Dim num_of_tickers As Double
+        Dim greatest_increase As Double
+        Dim greatest_decrease As Double
+        Dim greatest_vol As Double
+        Dim greatest_increase_ticker As String
+        Dim greatest_decrease_ticker As String
+        Dim greatest_vol_ticker As String
+        
+        
+         'loop over each worksheet
+       Dim ws_count As Integer
+       ws_count = ActiveWorkbook.Worksheets.Count
+       Dim j As Integer
+       For j = 1 To ws_count
+       'MsgBox ActiveWorkbook.Worksheets(j).Name
+        
+        'variable keeps track of location for each brand
+            Dim summary_table_row As Integer
+            summary_table_row = 2
+            
+    'find last row in spreadsheet
+        lastRow = ActiveSheet.Cells(ActiveSheet.Rows.Count, "A").End(xlUp).Row
+        'MsgBox (lastRow)
+    
+        
+    'add header for summary table
+        Range("I1").Value = "Ticker"
+        Range("J1").Value = "Yearly Change"
+        Range("K1").Value = "Percent Change"
+        Range("L1").Value = "Total Stock Volume"
+        
+    'assign all variables to 0 at the start of each worksheet
+        yearly_change = 0
+        ticker = ""
+        percent_change = 0
+        open_ = 0
+        num_of_tickers = 0
+        
+        
+    'loop through stocks
+        For i = 2 To lastRow
+        
+        'assign cell to ticker
+            ticker = Cells(i, 1).Value
+        
+        'get to the first date of stock
+            If open_ = 0 Then
+            open_ = Cells(i, 3).Value
+            End If
+            
+        'add up vol for a group
+            vol_total = vol_total + Cells(i, 7).Value
+            Range("L" & summary_table_row).Value = vol_total
+       
+        'if the stock ticker is different than the previous it then...
+            If Cells(i + 1, 1).Value <> Cells(i, 1).Value Then
+            ticker = Cells(i, 1).Value
+            
+            'Print ticker lable in table
+                Range("I" & summary_table_row).Value = ticker
+
+            'Go to the end of the stock year and get closing price
+                close_ = Cells(i, 6).Value
+            
+            'Calculating yealy change in stock price
+                yearly_change = close_ - open_
+                
+            'add yearly change into summary table
+                Range("J" & summary_table_row).Value = yearly_change
+            
+            'Conditional formatting, green = positive change, red = negative change
+                If yearly_change > 0 Then
+                 Range("J" & summary_table_row).Interior.ColorIndex = 4
+                ElseIf yearly_change < 0 Then
+                 Range("J" & summary_table_row).Interior.ColorIndex = 3
+                Else
+                  Range("J" & summary_table_row).Interior.ColorIndex = 6
+                End If
+            'Percent change calculation
+                If open_ = 0 Then
+                percent_change = 0
+                Else
+                percent_change = yearly_change / open_
+                End If
+              'add percent change into summary table and format percentage style
+                Range("K" & summary_table_row).Value = Format(percent_change, "Percent")
+                
+            'add 1 to to summary_table_row so we move to next row in next loop
+                summary_table_row = summary_table_row + 1
+                
+            'reset vol_total and open_ from previous ticker category
+                vol_total = 0
+                open_ = 0
+        
+        
+            End If
+            
+            Next i
+            
+             'Challenge section: add title for summary table
+            Range("O2").Value = "Greatest % Increase"
+            Range("O3").Value = "Greatest % Decrease"
+            Range("O4").Value = "Greatest Total Volume"
+            Range("P1").Value = "Ticker"
+            Range("Q1").Value = "Value"
+            
+            'create and assign variables
+            
+            greatest_increase = Range("Q2").Value
+            greatest_decrease = Range("Q3").Value
+            greatest_vol = Range("Q4").Value
+            greatest_increase_ticker = Range("P2").Value
+            greatest_decrease_ticker = Range("P3").Value
+            greatest_vol_ticker = Range("P4").Value
+            
+                
+     
+            For i = 2 To lastRow
+                If Cells(i, 11).Value > greatest_increase Then
+                greatest_increase = Cells(i, 11).Value
+                greatest_increase_ticker = Cells(i, 9).Value
+                End If
+                
+                If Cells(i, 11).Value < greatest_decrease Then
+                greatest_decrease = Cells(i, 11).Value
+                greatest_decrease_ticker = Cells(i, 9).Value
+                End If
+                
+                If Cells(i, 12).Value > greatest_vol Then
+                greatest_vol = Cells(i, 12).Value
+                greatest_vol_ticker = Cells(i, 9).Value
+                End If
+                
+            Next i
+                Range("P2").Value = Format(greatest_increase_ticker, "Percent")
+                Range("Q2").Value = Format(greatest_increase, "Percent")
+                Range("P3").Value = Format(greatest_decrease_ticker, "Percent")
+                Range("Q3").Value = Format(greatest_decrease, "Percent")
+                Range("P4").Value = greatest_vol_ticker
+                Range("Q4").Value = greatest_vol
+        Next j
+
+MsgBox ("All Done")
+
+End Sub
